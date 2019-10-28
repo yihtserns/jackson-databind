@@ -56,10 +56,6 @@ public class BasicClassIntrospector
      */
     protected HashMap<JavaType, AnnotatedClass> _resolvedFullAnnotations;
 
-    // 15-Oct-2019, tatu: No measurable benefit from trying to reuse direct
-    //    annotation access.
-//    protected HashMap<JavaType, AnnotatedClass> _resolvedDirectAnnotations;
-
     /**
      * Reuse full bean descriptions for serialization during a single operation
      */

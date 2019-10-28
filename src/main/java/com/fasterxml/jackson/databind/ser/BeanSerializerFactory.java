@@ -116,8 +116,8 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonSerializer<Object> createSerializer(SerializerProvider ctxt, JavaType origType,
-            BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+    public JsonSerializer<Object> createSerializer(SerializerProvider ctxt, SerializerCreationContext crCtxt,
+            JavaType origType, JsonFormat.Value formatOverrides)
         throws JsonMappingException
     {
         // Very first thing, let's check if there is explicit serializer annotation:
@@ -166,11 +166,11 @@ public class BeanSerializerFactory
             return new StdDelegatingSerializer(conv, delegateType, ser, null);
         }
         // No, regular serializer
-        return (JsonSerializer<Object>) _createSerializer2(ctxt, beanDesc, type, formatOverrides, staticTyping);
+        return (JsonSerializer<Object>) _createSerializer2(ctxt, crCtxt, type, formatOverrides, staticTyping);
     }
 
     protected JsonSerializer<?> _createSerializer2(SerializerProvider ctxt,
-            BeanDescription beanDesc, JavaType type, JsonFormat.Value formatOverrides,
+            SerializerCreationContext crCtxt, JavaType type, JsonFormat.Value formatOverrides,
             boolean staticTyping)
         throws JsonMappingException
     {

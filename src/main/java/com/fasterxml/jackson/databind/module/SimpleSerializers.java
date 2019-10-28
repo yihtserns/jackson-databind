@@ -5,6 +5,7 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.ser.SerializerCreationContext;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.ClassKey;
@@ -100,8 +101,8 @@ public class SimpleSerializers
      */
     
     @Override
-    public JsonSerializer<?> findSerializer(SerializationConfig config,
-            JavaType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+    public JsonSerializer<?> findSerializer(SerializerCreationContext ctxt,
+            JavaType type, JsonFormat.Value formatOverrides)
     {
         Class<?> cls = type.getRawClass();
         ClassKey key = new ClassKey(cls);
@@ -161,40 +162,40 @@ public class SimpleSerializers
     }
 
     @Override
-    public JsonSerializer<?> findArraySerializer(SerializationConfig config,
-            ArrayType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    public JsonSerializer<?> findArraySerializer(SerializerCreationContext ctxt,
+            ArrayType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        return findSerializer(config, type, beanDesc, formatOverrides);
+        return findSerializer(ctxt, type, formatOverrides);
     }
 
     @Override
-    public JsonSerializer<?> findCollectionSerializer(SerializationConfig config,
-            CollectionType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    public JsonSerializer<?> findCollectionSerializer(SerializerCreationContext ctxt,
+            CollectionType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        return findSerializer(config, type, beanDesc, formatOverrides);
+        return findSerializer(ctxt, type, formatOverrides);
     }
 
     @Override
-    public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
-            CollectionLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    public JsonSerializer<?> findCollectionLikeSerializer(SerializerCreationContext ctxt,
+            CollectionLikeType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        return findSerializer(config, type, beanDesc, formatOverrides);
+        return findSerializer(ctxt, type, formatOverrides);
     }
         
     @Override
-    public JsonSerializer<?> findMapSerializer(SerializationConfig config,
-            MapType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    public JsonSerializer<?> findMapSerializer(SerializerCreationContext ctxt,
+            MapType type, JsonFormat.Value formatOverrides,
             JsonSerializer<Object> keySerializer,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        return findSerializer(config, type, beanDesc, formatOverrides);
+        return findSerializer(ctxt, type, formatOverrides);
     }
 
     @Override
-    public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
-            MapLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    public JsonSerializer<?> findMapLikeSerializer(SerializerCreationContext ctxt,
+            MapLikeType type, JsonFormat.Value formatOverrides,
             JsonSerializer<Object> keySerializer,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        return findSerializer(config, type, beanDesc, formatOverrides);
+        return findSerializer(ctxt, type, formatOverrides);
     }
     
     /*

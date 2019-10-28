@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.SerializerCreationContext;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.*;
@@ -29,8 +30,8 @@ public class TestTypeModifiers extends BaseMapTest
         {
             context.addSerializers(new Serializers.Base() {
                 @Override
-                public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
-                        MapLikeType type, BeanDescription beanDesc, JsonFormat.Value format,
+                public JsonSerializer<?> findMapLikeSerializer(SerializerCreationContext ctxt,
+                        MapLikeType type, JsonFormat.Value formatOverrides,
                         JsonSerializer<Object> keySerializer,
                         TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
                 {
@@ -41,8 +42,8 @@ public class TestTypeModifiers extends BaseMapTest
                 }
 
                 @Override
-                public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
-                        CollectionLikeType type, BeanDescription beanDesc, JsonFormat.Value format,
+                public JsonSerializer<?> findCollectionLikeSerializer(SerializerCreationContext ctxt,
+                        CollectionLikeType type, JsonFormat.Value formatOverrides,
                         TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
                 {
                     if (CollectionMarker.class.isAssignableFrom(type.getRawClass())) {

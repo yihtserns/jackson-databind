@@ -30,8 +30,8 @@ public interface Serializers
      * @return Configured serializer to use for the type; or null if implementation
      *    does not recognize or support type
      */
-    default JsonSerializer<?> findSerializer(SerializationConfig config,
-            JavaType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+    default JsonSerializer<?> findSerializer(SerializerCreationContext ctxt,
+            JavaType type, JsonFormat.Value formatOverrides)
     {
         return null;
     }
@@ -44,8 +44,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findReferenceSerializer(SerializationConfig config,
-            ReferenceType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findReferenceSerializer(SerializerCreationContext ctxt,
+            ReferenceType type, JsonFormat.Value formatOverrides,
             TypeSerializer contentTypeSerializer, JsonSerializer<Object> contentValueSerializer)
     {
         return null;
@@ -61,8 +61,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findArraySerializer(SerializationConfig config, ArrayType type,
-            BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findArraySerializer(SerializerCreationContext ctxt,
+            ArrayType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
     {
         return null;
@@ -78,8 +78,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findCollectionSerializer(SerializationConfig config,
-            CollectionType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findCollectionSerializer(SerializerCreationContext ctxt,
+            CollectionType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
     {
         return null;
@@ -96,8 +96,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
-            CollectionLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findCollectionLikeSerializer(SerializerCreationContext ctxt,
+            CollectionLikeType type, JsonFormat.Value formatOverrides,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
     {
         return null;
@@ -113,8 +113,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findMapSerializer(SerializationConfig config,
-            MapType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findMapSerializer(SerializerCreationContext ctxt,
+            MapType type, JsonFormat.Value formatOverrides,
             JsonSerializer<Object> keySerializer,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
     {
@@ -132,8 +132,8 @@ public interface Serializers
      *     to change definitions that {@code beanDesc} may have (and which are NOT included). Usually
      *     combined calling {@code Serializers.Base#calculateEffectiveFormat}.
      */
-    default JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
-            MapLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+    default JsonSerializer<?> findMapLikeSerializer(SerializerCreationContext ctxt,
+            MapLikeType type, JsonFormat.Value formatOverrides,
             JsonSerializer<Object> keySerializer,
             TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
     {
@@ -149,8 +149,8 @@ public interface Serializers
      *
      * @since 3.0
      */
-    default JsonSerializer<?> findExplicitPOJOSerializer(SerializationConfig config,
-            JavaType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+    default JsonSerializer<?> findExplicitPOJOSerializer(SerializerCreationContext ctxt,
+            JavaType type, JsonFormat.Value formatOverrides)
     {
         return null;
     }
@@ -163,46 +163,46 @@ public interface Serializers
     public static class Base implements Serializers
     {
         @Override
-        public JsonSerializer<?> findSerializer(SerializationConfig config,
-                JavaType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+        public JsonSerializer<?> findSerializer(SerializerCreationContext ctxt,
+                JavaType type, JsonFormat.Value formatOverrides)
         {
             return null;
         }
 
         @Override
-        public JsonSerializer<?> findReferenceSerializer(SerializationConfig config,
-                ReferenceType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findReferenceSerializer(SerializerCreationContext ctxt,
+                ReferenceType type, JsonFormat.Value formatOverrides,
                 TypeSerializer contentTypeSerializer, JsonSerializer<Object> contentValueSerializer) {
             return null;
         }
 
         @Override
-        public JsonSerializer<?> findArraySerializer(SerializationConfig config,
-                ArrayType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findArraySerializer(SerializerCreationContext ctxt,
+                ArrayType type, JsonFormat.Value formatOverrides,
                 TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
         {
             return null;
         }
 
         @Override
-        public JsonSerializer<?> findCollectionSerializer(SerializationConfig config,
-                CollectionType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findCollectionSerializer(SerializerCreationContext ctxt,
+                CollectionType type, JsonFormat.Value formatOverrides,
                 TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
         {
             return null;
         }
 
         @Override
-        public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
-                CollectionLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findCollectionLikeSerializer(SerializerCreationContext ctxt,
+                CollectionLikeType type, JsonFormat.Value formatOverrides,
                 TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
         {
             return null;
         }
             
         @Override
-        public JsonSerializer<?> findMapSerializer(SerializationConfig config,
-                MapType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findMapSerializer(SerializerCreationContext ctxt,
+                MapType type, JsonFormat.Value formatOverrides,
                 JsonSerializer<Object> keySerializer,
                 TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
         {
@@ -210,8 +210,8 @@ public interface Serializers
         }
 
         @Override
-        public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
-                MapLikeType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides,
+        public JsonSerializer<?> findMapLikeSerializer(SerializerCreationContext ctxt,
+                MapLikeType type, JsonFormat.Value formatOverrides,
                 JsonSerializer<Object> keySerializer,
                 TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
         {
@@ -219,12 +219,12 @@ public interface Serializers
         }
 
         @Override
-        public JsonSerializer<?> findExplicitPOJOSerializer(SerializationConfig config,
-                JavaType type, BeanDescription beanDesc, JsonFormat.Value formatOverrides)
+        public JsonSerializer<?> findExplicitPOJOSerializer(SerializerCreationContext ctxt,
+                JavaType type, JsonFormat.Value formatOverrides)
         {
             return null;
         }
-        
+
         /*
         /******************************************************************
         /* Helper methods
