@@ -121,7 +121,7 @@ public class BeanSerializerFactory
         throws JsonMappingException
     {
         // Very first thing, let's check if there is explicit serializer annotation:
-        JsonSerializer<?> ser = findSerializerFromAnnotation(ctxt, beanDesc.getClassInfo());
+        JsonSerializer<?> ser = findSerializerFromAnnotation(ctxt, crCtxt.classInfo());
         if (ser != null) {
             return (JsonSerializer<Object>) ser;
         }
@@ -135,9 +135,9 @@ public class BeanSerializerFactory
             type = origType;
         } else {
             try {
-                type = intr.refineSerializationType(config, beanDesc.getClassInfo(), origType);
+                type = intr.refineSerializationType(config, crCtxt.classInfo(), origType);
             } catch (JsonMappingException e) {
-                return ctxt.reportBadTypeDefinition(beanDesc, e.getMessage());
+                return ctxt.reportBadTypeDefinition(crCtxt.beanDescription(), e.getMessage());
             }
         }
         if (type == origType) { // no changes, won't force static typing
@@ -145,23 +145,23 @@ public class BeanSerializerFactory
         } else { // changes; assume static typing; plus, need to re-introspect if class differs
             staticTyping = true;
             if (!type.hasRawClass(origType.getRawClass())) {
-                beanDesc = ctxt.introspectBeanDescription(type);
+                crCtxt = SerializerCreationContext.Simple.from(ctxt, type);
             }
         }
         // Slight detour: do we have a Converter to consider?
-        Converter<Object,Object> conv = beanDesc.findSerializationConverter();
+        Converter<Object,Object> conv = crCtxt.beanDescription().findSerializationConverter();
         if (conv != null) { // yup, need converter
             JavaType delegateType = conv.getOutputType(ctxt.getTypeFactory());
             
             // One more twist, as per [databind#288]; probably need to get new BeanDesc
             if (!delegateType.hasRawClass(type.getRawClass())) {
-                beanDesc = ctxt.introspectBeanDescription(delegateType);
+                crCtxt = SerializerCreationContext.Simple.from(ctxt, delegateType);
                 // [#359]: explicitly check (again) for @JsonSerializer...
-                ser = findSerializerFromAnnotation(ctxt, beanDesc.getClassInfo());
+                ser = findSerializerFromAnnotation(ctxt, crCtxt.classInfo());
             }
             // [databind#731]: Should skip if nominally java.lang.Object
             if ((ser == null) && !delegateType.isJavaLangObject()) {
-                ser = _createSerializer2(ctxt, beanDesc, delegateType, formatOverrides, true);
+                ser = _createSerializer2(ctxt, crCtxt, delegateType, formatOverrides, true);
             }
             return new StdDelegatingSerializer(conv, delegateType, ser, null);
         }
@@ -175,27 +175,26 @@ public class BeanSerializerFactory
         throws JsonMappingException
     {
         JsonSerializer<?> ser = null;
-        final SerializationConfig config = ctxt.getConfig();
         
         // Container types differ from non-container types
         // (note: called method checks for module-provided serializers)
         if (type.isContainerType()) {
             if (!staticTyping) {
-                staticTyping = usesStaticTyping(config, beanDesc, null);
+                staticTyping = usesStaticTyping(crCtxt, null);
             }
             // 03-Aug-2012, tatu: As per [databind#40], may require POJO serializer...
-            ser =  buildContainerSerializer(ctxt, type, beanDesc, formatOverrides, staticTyping);
+            ser =  buildContainerSerializer(ctxt, crCtxt, type, formatOverrides, staticTyping);
             // Will return right away, since called method does post-processing:
             if (ser != null) {
                 return ser;
             }
         } else {
             if (type.isReferenceType()) {
-                ser = findReferenceSerializer(ctxt, (ReferenceType) type, beanDesc, formatOverrides, staticTyping);
+                ser = findReferenceSerializer(ctxt, crCtxt, (ReferenceType) type, formatOverrides, staticTyping);
             } else {
                 // Modules may provide serializers of POJO types:
                 for (Serializers serializers : customSerializers()) {
-                    ser = serializers.findSerializer(config, type, beanDesc, formatOverrides);
+                    ser = serializers.findSerializer(crCtxt, type, formatOverrides);
                     if (ser != null) {
                         break;
                     }
@@ -204,7 +203,7 @@ public class BeanSerializerFactory
             // 25-Jun-2015, tatu: Then JsonSerializable, @JsonValue etc. NOTE! Prior to 2.6,
             //    this call was BEFORE custom serializer lookup, which was wrong.
             if (ser == null) {
-                ser = findSerializerByAnnotations(ctxt, type, beanDesc);
+                ser = findSerializerByAnnotations(ctxt, crCtxt, type);
             }
         }
         
@@ -212,17 +211,17 @@ public class BeanSerializerFactory
             // Otherwise, we will check "primary types"; both marker types that
             // indicate specific handling (JsonSerializable), or main types that have
             // precedence over container types
-            ser = findSerializerByLookup(type, config, beanDesc, formatOverrides, staticTyping);
+            ser = findSerializerByLookup(crCtxt, type, formatOverrides, staticTyping);
             if (ser == null) {
-                ser = findSerializerByPrimaryType(ctxt, type, beanDesc, formatOverrides, staticTyping);
+                ser = findSerializerByPrimaryType(ctxt, crCtxt, type, formatOverrides, staticTyping);
                 if (ser == null) {
                     // And this is where this class comes in: if type is not a
                     // known "primary JDK type", perhaps it's a bean? We can still
                     // get a null, if we can't find a single suitable bean property.
-                    ser = constructBeanOrAddOnSerializer(ctxt, type, beanDesc, formatOverrides, staticTyping);
+                    ser = constructBeanOrAddOnSerializer(ctxt, crCtxt, type, formatOverrides, staticTyping);
                     // Finally: maybe we can still deal with it as an implementation of some basic JDK interface?
                     if (ser == null) {
-                        ser = ctxt.getUnknownTypeSerializer(beanDesc.getBeanClass());
+                        ser = ctxt.getUnknownTypeSerializer(type.getRawClass());
                     }
                 }
             }
@@ -230,7 +229,7 @@ public class BeanSerializerFactory
         // can not be null any more (always get at least "unknown" serializer)
         if (_factoryConfig.hasSerializerModifiers()) {
             for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
-                ser = mod.modifySerializer(config, beanDesc, ser);
+                ser = mod.modifySerializer(crCtxt, ser);
             }
         }
         return ser;
@@ -260,18 +259,22 @@ public class BeanSerializerFactory
      */
     @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> constructBeanOrAddOnSerializer(SerializerProvider ctxt,
-            JavaType type, BeanDescription beanDesc, JsonFormat.Value format, boolean staticTyping)
+            SerializerCreationContext crCtxt, JavaType type, JsonFormat.Value format,
+            boolean staticTyping)
         throws JsonMappingException
     {
+        final BeanDescription beanDesc = crCtxt.beanDescription();
+        final Class<?> rawType = type.getRawClass();
+        
         // 13-Oct-2010, tatu: quick sanity check: never try to create bean serializer for plain Object
         // 05-Jul-2012, tatu: ... but we should be able to just return "unknown type" serializer, right?
-        if (beanDesc.getBeanClass() == Object.class) {
+        if (rawType == Object.class) {
             return ctxt.getUnknownTypeSerializer(Object.class);
 //            throw new IllegalArgumentException("Cannot create bean serializer for Object.class");
         }
 
         // We also know some types are not beans...
-        if (!isPotentialBeanType(type.getRawClass())) {
+        if (!isPotentialBeanType(rawType)) {
             // Except we do need to allow serializers for Enums, if shape dictates (which it does
             // if we end up here)
             if (!type.isEnumType()) {
@@ -284,7 +287,7 @@ public class BeanSerializerFactory
         builder.setConfig(config);
 
         // First: any detectable (auto-detect, annotations) properties to serialize?
-        List<BeanPropertyWriter> props = findBeanProperties(ctxt, beanDesc, builder);
+        List<BeanPropertyWriter> props = findBeanProperties(ctxt, crCtxt, builder);
         if (props == null) {
             props = new ArrayList<BeanPropertyWriter>();
         } else {
@@ -317,7 +320,7 @@ public class BeanSerializerFactory
         builder.setObjectIdWriter(constructObjectIdHandler(ctxt, beanDesc, props));
         
         builder.setProperties(props);
-        builder.setFilterId(findFilterId(config, beanDesc));
+        builder.setFilterId(findFilterId(crCtxt));
 
         AnnotatedMember anyGetter = beanDesc.findAnyGetter();
         if (anyGetter != null) {
@@ -359,7 +362,7 @@ public class BeanSerializerFactory
         }
         if (ser == null) {
             // [databind#2390]: Need to consider add-ons before fallback "empty" serializer
-            ser = (JsonSerializer<Object>) findSerializerByAddonType(ctxt, type, beanDesc, format, staticTyping);
+            ser = (JsonSerializer<Object>) findSerializerByAddonType(ctxt, crCtxt, type, format, staticTyping);
             if (ser == null) {
                 // If we get this far, there were no properties found, so no regular BeanSerializer
                 // would be constructed. But, couple of exceptions.
@@ -465,9 +468,10 @@ public class BeanSerializerFactory
      * Can be overridden to implement custom detection schemes.
      */
     protected List<BeanPropertyWriter> findBeanProperties(SerializerProvider ctxt,
-            BeanDescription beanDesc, BeanSerializerBuilder builder)
+            SerializerCreationContext crCtxt, BeanSerializerBuilder builder)
         throws JsonMappingException
     {
+        final BeanDescription beanDesc = crCtxt.beanDescription();
         List<BeanPropertyDefinition> properties = beanDesc.findProperties();
         final SerializationConfig config = ctxt.getConfig();
 
@@ -484,7 +488,7 @@ public class BeanSerializerFactory
             return null;
         }
         // null is for value type serializer, which we don't have access to from here (ditto for bean prop)
-        boolean staticTyping = usesStaticTyping(config, beanDesc, null);
+        boolean staticTyping = usesStaticTyping(crCtxt, null);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
         
         ArrayList<BeanPropertyWriter> result = new ArrayList<BeanPropertyWriter>(properties.size());

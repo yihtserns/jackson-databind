@@ -27,7 +27,7 @@ public abstract class SerializerFactory
      * @since 3.0 (last argument added)
      */
     public abstract JsonSerializer<Object> createSerializer(SerializerProvider ctxt,
-            JavaType baseType, BeanDescription beanDesc, JsonFormat.Value formatOverride)
+            SerializerCreationContext crCtxt, JavaType baseType, JsonFormat.Value formatOverride)
         throws JsonMappingException;
 
     /**
@@ -43,7 +43,7 @@ public abstract class SerializerFactory
      *   serializer is to be used)
      */
     public abstract JsonSerializer<Object> createKeySerializer(SerializerProvider ctxt,
-            JavaType type, JsonSerializer<Object> defaultImpl)
+            SerializerCreationContext crCtxt, JavaType type, JsonSerializer<Object> defaultImpl)
         throws JsonMappingException;
 
     /**
@@ -100,6 +100,7 @@ public abstract class SerializerFactory
     /**
      * @deprecated Since 3.0 use variant that takes {@code JsonFormat.Value} argument
      */
+    /*
     @Deprecated // since 3.0
     public JsonSerializer<Object> createSerializer(SerializerProvider ctxt, JavaType baseType)
         throws JsonMappingException
@@ -107,4 +108,5 @@ public abstract class SerializerFactory
         BeanDescription beanDesc = ctxt.introspectBeanDescription(baseType);
         return createSerializer(ctxt, baseType, beanDesc, null);
     }
+    */
 }

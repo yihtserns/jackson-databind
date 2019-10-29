@@ -90,8 +90,8 @@ public abstract class BeanSerializerModifier
      * do not go through any of more specific <code>modifyXxxSerializer</code>
      * methods; mostly for JDK types like {@link java.util.Iterator} and such.
      */
-    public JsonSerializer<?> modifySerializer(SerializationConfig config,
-            BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifySerializer(SerializerCreationContext crCtxt,
+            JsonSerializer<?> serializer) {
         return serializer;
     }
 
@@ -108,41 +108,39 @@ public abstract class BeanSerializerModifier
      * to make it possible to either replace or augment this serializer with
      * additional functionality.
      * 
-     * @param config Configuration in use
      * @param valueType Type of the value serializer is used for.
-     * @param beanDesc Details of the type in question, to allow checking class annotations
      * @param serializer Default serializer that would be used.
      * 
      * @return Serializer to use; either <code>serializer</code> that was passed
      *   in, or an instance method constructed.
      */
-    public JsonSerializer<?> modifyArraySerializer(SerializationConfig config,
-            ArrayType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyArraySerializer(SerializerCreationContext crCtxt, 
+            ArrayType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
-    public JsonSerializer<?> modifyCollectionSerializer(SerializationConfig config,
-            CollectionType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyCollectionSerializer(SerializerCreationContext crCtxt, 
+            CollectionType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
-    public JsonSerializer<?> modifyCollectionLikeSerializer(SerializationConfig config,
-            CollectionLikeType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyCollectionLikeSerializer(SerializerCreationContext crCtxt, 
+            CollectionLikeType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
-    public JsonSerializer<?> modifyMapSerializer(SerializationConfig config,
-            MapType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyMapSerializer(SerializerCreationContext crCtxt, 
+            MapType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
-    public JsonSerializer<?> modifyMapLikeSerializer(SerializationConfig config,
-            MapLikeType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyMapLikeSerializer(SerializerCreationContext crCtxt, 
+            MapLikeType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
-    public JsonSerializer<?> modifyEnumSerializer(SerializationConfig config,
-            JavaType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyEnumSerializer(SerializerCreationContext crCtxt, 
+            JavaType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 
@@ -152,17 +150,15 @@ public abstract class BeanSerializerModifier
      * given type.
      * This makes it possible to either replace or augment default serializer with
      * additional functionality.
-     * 
-     * @param config Configuration in use
+     *
      * @param valueType Type of keys the serializer is used for.
-     * @param beanDesc Details of the type in question, to allow checking class annotations
      * @param serializer Default serializer that would be used.
      * 
      * @return Serializer to use; either <code>serializer</code> that was passed
      *   in, or an instance method constructed.
      */
-    public JsonSerializer<?> modifyKeySerializer(SerializationConfig config,
-            JavaType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public JsonSerializer<?> modifyKeySerializer(SerializerCreationContext crCtxt, 
+            JavaType valueType, JsonSerializer<?> serializer) {
         return serializer;
     }
 }

@@ -1563,10 +1563,10 @@ nonAnnotatedParamIndex, ctor);
      * Overridable method called after checking all other types.
      */
     protected JsonDeserializer<?> findOptionalStdDeserializer(DeserializationContext ctxt,
-            JavaType type, BeanDescription beanDesc)
+            JavaType type)
         throws JsonMappingException
     {
-        return OptionalHandlerFactory.instance.findDeserializer(type, ctxt.getConfig(), beanDesc);
+        return OptionalHandlerFactory.instance.findDeserializer(ctxt.getConfig(), type);
     }
     
     /*
@@ -1740,7 +1740,7 @@ nonAnnotatedParamIndex, ctor);
         if (rawType == TokenBuffer.class) {
             return new TokenBufferDeserializer();
         }
-        JsonDeserializer<?> deser = findOptionalStdDeserializer(ctxt, type, beanDesc);
+        JsonDeserializer<?> deser = findOptionalStdDeserializer(ctxt, type);
         if (deser != null) {
             return deser;
         }

@@ -396,11 +396,8 @@ public abstract class BeanSerializerBase
                     case STRING:
                     case NUMBER:
                     case NUMBER_INT:
-                        // 12-Oct-2014, tatu: May need to introspect full annotations... but
-                        //   for now, just do class ones
-                        BeanDescription desc = ctxt.introspectBeanDescription(_beanType);
-                        JsonSerializer<?> ser = EnumSerializer.construct(_beanType.getRawClass(),
-                                config, desc, format);
+                        JsonSerializer<?> ser = EnumSerializer.construct(config,
+                                _beanType.getRawClass(), format);
                         return ctxt.handlePrimaryContextualization(ser, property);
                     }
                 // 16-Oct-2016, tatu: Ditto for `Map`, `Map.Entry` subtypes

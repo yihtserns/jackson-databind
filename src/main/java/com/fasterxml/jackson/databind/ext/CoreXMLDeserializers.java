@@ -32,8 +32,8 @@ public class CoreXMLDeserializers
         }
     }
 
-    public static JsonDeserializer<?> findBeanDeserializer(JavaType type,
-        DeserializationConfig config, BeanDescription beanDesc)
+    public static JsonDeserializer<?> findBeanDeserializer(DeserializationConfig config,
+            JavaType type)
     {
         Class<?> raw = type.getRawClass();
         if (raw == QName.class) {

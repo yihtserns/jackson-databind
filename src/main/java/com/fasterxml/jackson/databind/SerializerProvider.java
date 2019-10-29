@@ -19,11 +19,7 @@ import com.fasterxml.jackson.databind.cfg.ContextAttributes;
 import com.fasterxml.jackson.databind.cfg.GeneratorSettings;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.fasterxml.jackson.databind.introspect.ClassIntrospector;
+import com.fasterxml.jackson.databind.introspect.*;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.*;
 import com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap;
@@ -760,9 +756,10 @@ public abstract class SerializerProvider
     public JsonSerializer<Object> findKeySerializer(JavaType keyType, BeanProperty property)
         throws JsonMappingException
     {
+        final SerializerCreationContext crCtxt = SerializerCreationContext.Simple.from(this, keyType);
         // 16-Mar-2018, tatu: Used to have "default key serializer" in 2.x; dropped to let/make
         //    custom code use Module interface or similar to provide key serializers
-        JsonSerializer<Object> ser = _serializerFactory.createKeySerializer(this, keyType, null);
+        JsonSerializer<Object> ser = _serializerFactory.createKeySerializer(this, crCtxt, keyType, null);
         // _handleContextualResolvable(ser, property):
         ser.resolve(this);
         return handleSecondaryContextualization(ser, property);
@@ -867,11 +864,11 @@ public abstract class SerializerProvider
             JavaType fullType)
         throws JsonMappingException
     {
-        // Important: must introspect all annotations, not just class
-        BeanDescription beanDesc = introspectBeanDescription(fullType);
-        JsonSerializer<Object> ser;
+        final JsonSerializer<Object> ser;
         try {
-            ser = _serializerFactory.createSerializer(this, fullType, beanDesc, null);
+            ser = _serializerFactory.createSerializer(this,
+                    SerializerCreationContext.Simple.from(this, fullType),
+                    fullType, null);
         } catch (IllegalArgumentException iae) {
             // We better only expose checked exceptions, since those are what caller is expected to handle
             throw _mappingProblem(iae, ClassUtil.exceptionMessage(iae));
@@ -884,11 +881,11 @@ public abstract class SerializerProvider
     protected JsonSerializer<Object> _createAndCacheUntypedSerializer(JavaType type)
         throws JsonMappingException
     {
-        // Important: must introspect all annotations, not just class
-        BeanDescription beanDesc = introspectBeanDescription(type);
-        JsonSerializer<Object> ser;
+        final JsonSerializer<Object> ser;
         try {
-            ser = _serializerFactory.createSerializer(this, type, beanDesc, null);
+            ser = _serializerFactory.createSerializer(this,
+                    SerializerCreationContext.Simple.from(this, type),
+                    type, null);
         } catch (IllegalArgumentException iae) {
             // We better only expose checked exceptions, since those are what caller is expected to handle
             throw _mappingProblem(iae, ClassUtil.exceptionMessage(iae));
@@ -906,10 +903,11 @@ public abstract class SerializerProvider
             JavaType fullType, BeanProperty prop)
         throws JsonMappingException
     {
-        BeanDescription beanDesc = introspectBeanDescription(fullType);
-        JsonSerializer<Object> ser;
+        final JsonSerializer<Object> ser;
+        final SerializerCreationContext crCtxt = SerializerCreationContext.Simple.from(this, fullType);
         try {
-            ser = _serializerFactory.createSerializer(this, fullType, beanDesc, null);
+            ser = _serializerFactory.createSerializer(this, crCtxt,
+                    fullType, null);
         } catch (IllegalArgumentException iae) {
             throw _mappingProblem(iae, ClassUtil.exceptionMessage(iae));
         }
@@ -918,7 +916,7 @@ public abstract class SerializerProvider
         if (prop == null) {
             return ser;
         }
-        return _checkShapeShifting(fullType, beanDesc, prop, ser);
+        return _checkShapeShifting(crCtxt, fullType, prop, ser);
     }
 
     /**
@@ -929,10 +927,10 @@ public abstract class SerializerProvider
             BeanProperty prop)
         throws JsonMappingException
     {
-        BeanDescription beanDesc = introspectBeanDescription(type);
-        JsonSerializer<Object> ser;
+        final JsonSerializer<Object> ser;
+        final SerializerCreationContext crCtxt = SerializerCreationContext.Simple.from(this, type);
         try {
-            ser = _serializerFactory.createSerializer(this, type, beanDesc, null);
+            ser = _serializerFactory.createSerializer(this, crCtxt, type, null);
         } catch (IllegalArgumentException iae) {
             throw _mappingProblem(iae, ClassUtil.exceptionMessage(iae));
         }
@@ -941,12 +939,12 @@ public abstract class SerializerProvider
         if (prop == null) {
             return ser;
         }
-        return _checkShapeShifting(type, beanDesc, prop, ser);
+        return _checkShapeShifting(crCtxt, type, prop, ser);
     }
 
     @SuppressWarnings("unchecked")
-    private JsonSerializer<Object> _checkShapeShifting(JavaType type, BeanDescription beanDesc,
-            BeanProperty prop, JsonSerializer<?> ser)
+    private JsonSerializer<Object> _checkShapeShifting(SerializerCreationContext crCtxt,
+            JavaType type, BeanProperty prop, JsonSerializer<?> ser)
         throws JsonMappingException
     {
         JsonFormat.Value overrides = prop.findFormatOverrides(_config);
@@ -957,7 +955,7 @@ public abstract class SerializerProvider
                 ser = ser2;
             } else {
                 // But if not, we need to re-create it via factory
-                ser = _serializerFactory.createSerializer(this, type, beanDesc, overrides);
+                ser = _serializerFactory.createSerializer(this, crCtxt, type, overrides);
             }
         }
         return (JsonSerializer<Object>) ser;

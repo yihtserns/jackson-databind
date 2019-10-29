@@ -54,8 +54,8 @@ public class EnumSerializer
      * for constructing serializer instance of Enum types.
      */
     @SuppressWarnings("unchecked")
-    public static EnumSerializer construct(Class<?> enumClass, SerializationConfig config,
-            BeanDescription beanDesc, JsonFormat.Value format)
+    public static EnumSerializer construct(SerializationConfig config, Class<?> enumClass,
+            JsonFormat.Value format)
     {
         // 08-Apr-2015, tatu: As per [databind#749], we cannot statically determine
         //   between name() and toString(), need to construct `EnumValues` with names,

@@ -92,7 +92,7 @@ public class BeanSerializerModifierTest extends BaseMapTest
         public ReplacingModifier(JsonSerializer<?> s) { _serializer = s; }
         
         @Override
-        public JsonSerializer<?> modifySerializer(SerializationConfig config, BeanDescription beanDesc,
+        public JsonSerializer<?> modifySerializer(SerializerCreationContext crCtxt,
                 JsonSerializer<?> serializer) {
             return _serializer;
         }
@@ -184,8 +184,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
         }
         
         @Override
-        public JsonSerializer<?> modifySerializer(SerializationConfig config,
-                BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifySerializer(SerializerCreationContext crCtxt,
+                JsonSerializer<?> serializer) {
             return new BogusBeanSerializer(42);
         }
     }
@@ -193,8 +193,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
     
     static class ArraySerializerModifier extends BeanSerializerModifier {
         @Override
-        public JsonSerializer<?> modifyArraySerializer(SerializationConfig config,
-                ArrayType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifyArraySerializer(SerializerCreationContext crCtxt,
+                ArrayType valueType, JsonSerializer<?> serializer) {
             return new StdSerializer<Object>(Object.class) {
                 @Override public void serialize(Object value, JsonGenerator g, SerializerProvider provider) throws IOException {
                     g.writeNumber(123);
@@ -205,8 +205,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
 
     static class CollectionSerializerModifier extends BeanSerializerModifier {
         @Override
-        public JsonSerializer<?> modifyCollectionSerializer(SerializationConfig config,
-                CollectionType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifyCollectionSerializer(SerializerCreationContext crCtxt,
+                CollectionType valueType, JsonSerializer<?> serializer) {
             return new StdSerializer<Object>(Object.class) {
                 @Override public void serialize(Object value, JsonGenerator g, SerializerProvider provider) throws IOException {
                     g.writeNumber(123);
@@ -217,8 +217,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
 
     static class MapSerializerModifier extends BeanSerializerModifier {
         @Override
-        public JsonSerializer<?> modifyMapSerializer(SerializationConfig config,
-                MapType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifyMapSerializer(SerializerCreationContext crCtxt,
+                MapType valueType, JsonSerializer<?> serializer) {
             return new StdSerializer<Object>(Object.class) {
                 @Override public void serialize(Object value, JsonGenerator g, SerializerProvider provider) throws IOException {
                     g.writeNumber(123);
@@ -229,8 +229,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
 
     static class EnumSerializerModifier extends BeanSerializerModifier {
         @Override
-        public JsonSerializer<?> modifyEnumSerializer(SerializationConfig config,
-                JavaType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifyEnumSerializer(SerializerCreationContext crCtxt,
+                JavaType valueType, JsonSerializer<?> serializer) {
             return new StdSerializer<Object>(Object.class) {
                 @Override public void serialize(Object value, JsonGenerator g, SerializerProvider provider) throws IOException {
                     g.writeNumber(123);
@@ -241,8 +241,8 @@ public class BeanSerializerModifierTest extends BaseMapTest
 
     static class KeySerializerModifier extends BeanSerializerModifier {
         @Override
-        public JsonSerializer<?> modifyKeySerializer(SerializationConfig config,
-                JavaType valueType, BeanDescription beanDesc, JsonSerializer<?> serializer) {
+        public JsonSerializer<?> modifyKeySerializer(SerializerCreationContext crCtxt,
+                JavaType valueType, JsonSerializer<?> serializer) {
             return new StdSerializer<Object>(Object.class) {
                 @Override public void serialize(Object value, JsonGenerator g, SerializerProvider provider) throws IOException {
                     g.writeFieldName("foo");
