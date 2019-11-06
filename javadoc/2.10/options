@@ -1,18 +1,17 @@
 -classpath
-'/Users/tatu/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.10.0/jackson-annotations-2.10.0.jar:/Users/tatu/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.10.0/jackson-core-2.10.0.jar'
+'/Users/tatu/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.10.1-SNAPSHOT/jackson-annotations-2.10.1-SNAPSHOT.jar:/Users/tatu/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.10.1-SNAPSHOT/jackson-core-2.10.1-SNAPSHOT.jar'
 -encoding
 'UTF-8'
 -protected
--quiet
 -sourcepath
-'/opt/java/jackson-databind/src/main/java:/opt/java/jackson-databind/target/generated-sources:/opt/java/jackson-databind/target/generated-sources/annotations'
+'/opt/java/jackson-databind/src/main/java:/opt/java/jackson-databind/target/generated-sources'
 -author
 -bottom
 'Copyright &#169; 2008&#x2013;2019 <a href="http://fasterxml.com/">FasterXML</a>. All rights reserved.'
 -charset
 'UTF-8'
 -d
-'/opt/java/jackson-databind/target/apidocs'
+'/opt/java/jackson-databind/target/site/apidocs'
 -docencoding
 'UTF-8'
 -doctitle
