@@ -539,9 +539,7 @@ index, owner, defs[index], propDef);
                 JacksonInject.Value injectable = intr.findInjectableValue(param);
                 final PropertyName name = (propDef == null) ? null : propDef.getFullName();
 
-                if ((propDef != null)
-                        // [databind#3724]: Record canonical constructor will have implicitly named propDef
-                        && (propDef.isExplicitlyNamed() || beanDesc.isRecordType())) {
+                if ((propDef != null) && (propDef.isExplicitlyNamed() || propDef.isSpecial())) {
                     ++explicitNameCount;
                     properties[i] = constructCreatorProperty(ctxt, beanDesc, name, i, param, injectable);
                     continue;
@@ -1031,8 +1029,7 @@ candidate.creator());
                     return true;
                 }
             }
-            // [databind#3897]: Record canonical constructor will have implicitly named propDef
-            if (!propDef.isExplicitlyNamed() && beanDesc.isRecordType()) {
+            if (propDef.isSpecial()) {
                 return true;
             }
         }

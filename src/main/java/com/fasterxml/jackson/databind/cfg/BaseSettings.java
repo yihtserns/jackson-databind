@@ -143,6 +143,9 @@ public final class BaseSettings
      */
     protected final Base64Variant _defaultBase64;
 
+    private final SpecialTypeHandler.Config _specialTypeHandlerConfig = new SpecialTypeHandler.Config()
+            .add(SpecialTypeHandler.OutOfTheBox.RECORDS);
+
     /*
     /**********************************************************
     /* Construction
@@ -376,6 +379,14 @@ public final class BaseSettings
 
     public AnnotationIntrospector getAnnotationIntrospector() {
         return _annotationIntrospector;
+    }
+
+    public void addSpecialTypeHandler(SpecialTypeHandler handler) {
+        _specialTypeHandlerConfig.add(handler);
+    }
+
+    public SpecialTypeHandler findSpecialTypeHandler(JavaType type) {
+        return _specialTypeHandlerConfig.findHandler(type);
     }
 
     public PropertyNamingStrategy getPropertyNamingStrategy() {

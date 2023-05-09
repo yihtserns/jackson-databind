@@ -181,9 +181,8 @@ public class BasicClassIntrospector
             JavaType type, MixInResolver r, boolean forSerialization)
     {
         final AnnotatedClass classDef = _resolveAnnotatedClass(config, type, r);
-        final AccessorNamingStrategy accNaming = type.isRecordType()
-                ? config.getAccessorNaming().forRecord(config, classDef)
-                : config.getAccessorNaming().forPOJO(config, classDef);
+        final AccessorNamingStrategy accNaming = config.findSpecialTypeHandler(type)
+                .getAccessorNamingStrategy(config, classDef);
         return constructPropertyCollector(config, classDef, type, forSerialization, accNaming);
     }
 

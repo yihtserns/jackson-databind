@@ -301,6 +301,8 @@ public abstract class Module
          */
         public void appendAnnotationIntrospector(AnnotationIntrospector ai);
 
+        void addSpecialTypeHandler(SpecialTypeHandler handler);
+
         /**
          * Method for registering specified classes as subtypes (of supertype(s)
          * they have)

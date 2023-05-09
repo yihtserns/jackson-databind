@@ -281,6 +281,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
         return _base.getHandlerInstantiator();
     }
 
+    public void addSpecialTypeHandler(SpecialTypeHandler handler) {
+        _base.addSpecialTypeHandler(handler);
+    }
+
+    public SpecialTypeHandler findSpecialTypeHandler(JavaType type) {
+        return _base.findSpecialTypeHandler(type);
+    }
+
     /*
     /**********************************************************
     /* Configuration: type and subtype handling

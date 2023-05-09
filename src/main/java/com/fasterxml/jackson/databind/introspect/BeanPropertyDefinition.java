@@ -143,6 +143,10 @@ public abstract class BeanPropertyDefinition
         return getMetadata().isRequired();
     }
 
+    public boolean isSpecial() {
+        return false;
+    }
+
     /*
     /**********************************************************
     /* Capabilities

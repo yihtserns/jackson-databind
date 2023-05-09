@@ -64,6 +64,8 @@ public class POJOPropertyBuilder
 
     protected transient PropertyMetadata _metadata;
 
+    private boolean _special;
+
     /**
      * Lazily accessed information about this property iff it is a forward or
      * back reference.
@@ -99,6 +101,7 @@ public class POJOPropertyBuilder
         _getters = src._getters;
         _setters = src._setters;
         _forSerialization = src._forSerialization;
+        _special = src._special;
     }
 
     /*
@@ -244,6 +247,15 @@ public class POJOPropertyBuilder
             }
         }
         return _metadata;
+    }
+
+    public void markSpecial() {
+        this._special = true;
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return _special;
     }
 
     /**

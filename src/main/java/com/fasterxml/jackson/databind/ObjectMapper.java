@@ -1011,6 +1011,12 @@ public class ObjectMapper
             }
 
             @Override
+            public void addSpecialTypeHandler(SpecialTypeHandler handler) {
+                _deserializationConfig.addSpecialTypeHandler(handler);
+                _serializationConfig.addSpecialTypeHandler(handler);
+            }
+
+            @Override
             public void registerSubtypes(Class<?>... subtypes) {
                 ObjectMapper.this.registerSubtypes(subtypes);
             }
