@@ -22,6 +22,15 @@ public class RecordWithJsonIgnoreTest extends BaseMapTest
         }
     }
 
+    record RecordWithIgnoreComponentOverriddenAccessor(int id, @JsonIgnore String name) {
+
+        // @JsonIgnore on overridden method is not automatically inherited by overriding method
+        @Override
+        public String name() {
+            return name;
+        }
+    }
+
     record RecordWithIgnorePrimitiveType(@JsonIgnore int id, String name) {
     }
 
@@ -71,8 +80,34 @@ public class RecordWithJsonIgnoreTest extends BaseMapTest
     }
 
     public void testDeserializeJsonIgnoreAccessorRecord() throws Exception {
-        RecordWithIgnoreAccessor value = MAPPER.readValue("{\"id\":123,\"name\":\"Bob\"}", RecordWithIgnoreAccessor.class);
-        assertEquals(new RecordWithIgnoreAccessor(123, null), value);
+        RecordWithIgnoreAccessor expected = new RecordWithIgnoreAccessor(123, null);
+
+        assertEquals(expected, MAPPER.readValue("{\"id\":123}", RecordWithIgnoreAccessor.class));
+        assertEquals(expected, MAPPER.readValue("{\"id\":123,\"name\":null}", RecordWithIgnoreAccessor.class));
+        assertEquals(expected, MAPPER.readValue("{\"id\":123,\"name\":\"Bob\"}", RecordWithIgnoreAccessor.class));
+    }
+
+
+    /*
+    /**********************************************************************
+    /* Test methods, JsonIgnore component, but accessor method was overridden without re-annotating with JsonIgnore
+    /**********************************************************************
+     */
+
+    public void testSerializeJsonIgnoreComponentOverrideAccessorRecord() throws Exception {
+        String json = MAPPER.writeValueAsString(new RecordWithIgnoreComponentOverriddenAccessor(123, "Bob"));
+        assertEquals("{\"id\":123}", json);
+    }
+
+    public void testDeserializeJsonIgnoreComponentOverrideAccessorRecord() throws Exception {
+        assertEquals(new RecordWithIgnoreComponentOverriddenAccessor(123, null),
+                MAPPER.readValue("{\"id\":123}", RecordWithIgnoreComponentOverriddenAccessor.class));
+        assertEquals(new RecordWithIgnoreComponentOverriddenAccessor(123, null),
+                MAPPER.readValue("{\"id\":123,\"name\":null}", RecordWithIgnoreComponentOverriddenAccessor.class));
+
+        // BUG: Deserialization should've ignored 'name' - caused by jackson-databind/pull/3737
+         assertEquals(new RecordWithIgnoreComponentOverriddenAccessor(123, "Bob"), // BUG: Should be `null` instead of "Bob"
+                 MAPPER.readValue("{\"id\":123,\"name\":\"Bob\"}", RecordWithIgnoreComponentOverriddenAccessor.class));
     }
 
     /*
