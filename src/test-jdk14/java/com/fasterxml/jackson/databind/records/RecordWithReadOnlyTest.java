@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.BaseMapTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 
 public class RecordWithReadOnlyTest extends BaseMapTest {
 
@@ -35,14 +34,14 @@ public class RecordWithReadOnlyTest extends BaseMapTest {
     record RecordWithReadOnlyPrimitiveType(@JsonProperty(access = Access.READ_ONLY) int id, String name) {
     }
 
-    record RecordWithReadOnlyAll(@JsonProperty(access = Access.READ_ONLY) int id,
+    record RecordWithAllReadOnly(@JsonProperty(access = Access.READ_ONLY) int id,
                                  @JsonProperty(access = Access.READ_ONLY) String name) {
     }
 
-    record RecordWithReadOnlyAllAndNoArgConstructor(@JsonProperty(access = Access.READ_ONLY) int id,
-                                                    @JsonProperty(access = Access.READ_ONLY) String name) {
+    record RecordWithAllReadOnlyCanonicalAndNoArgConstructor(@JsonProperty(access = Access.READ_ONLY) int id,
+                                                             @JsonProperty(access = Access.READ_ONLY) String name) {
 
-        public RecordWithReadOnlyAllAndNoArgConstructor() {
+        public RecordWithAllReadOnlyCanonicalAndNoArgConstructor() {
             this(-1, "no-arg");
         }
     }
@@ -145,30 +144,20 @@ public class RecordWithReadOnlyTest extends BaseMapTest {
     /**********************************************************************
      */
 
-    public void testSerializeReadOnlyAllProperties() throws Exception {
-        String json = MAPPER.writeValueAsString(new RecordWithReadOnlyAll(123, "Bob"));
+    public void testSerializeAllReadOnlyProperties() throws Exception {
+        String json = MAPPER.writeValueAsString(new RecordWithAllReadOnly(123, "Bob"));
         assertEquals(a2q("{'id':123,'name':'Bob'}"), json);
     }
 
-    public void testDeserializeReadOnlyAllProperties() throws Exception {
-        try {
-            MAPPER.readValue(a2q("{'id':123,'name':'Bob'}"), RecordWithReadOnlyAll.class);
-            fail("should not pass");
-        } catch (InvalidDefinitionException e) {
-            verifyException(e, "Cannot construct instance");
-            verifyException(e, "RecordWithReadOnlyAll");
-            verifyException(e, "no Creators, like default constructor, exist");
-            verifyException(e, "cannot deserialize from Object value");
-        }
+    public void testDeserializeAllReadOnlyProperties() throws Exception {
+        RecordWithAllReadOnly value = MAPPER.readValue(a2q("{'id':123,'name':'Bob'}"), RecordWithAllReadOnly.class);
+        assertEquals(new RecordWithAllReadOnly(0, null), value);
     }
 
-    public void testSerializeReadOnlyAllProperties_WithNoArgConstructor() throws Exception {
-        String json = MAPPER.writeValueAsString(new RecordWithReadOnlyAllAndNoArgConstructor(123, "Bob"));
-        assertEquals(a2q("{'id':123,'name':'Bob'}"), json);
-    }
-
-    public void testDeserializeReadOnlyAllProperties_WithNoArgConstructor() throws Exception {
-        RecordWithReadOnlyAllAndNoArgConstructor value = MAPPER.readValue(a2q("{'id':123,'name':'Bob'}"), RecordWithReadOnlyAllAndNoArgConstructor.class);
-        assertEquals(new RecordWithReadOnlyAllAndNoArgConstructor(), value);
+    public void testDeserializeAllReadOnlyCanonicalConstructorAndNoArgConstructor_WillUseCanonicalConstructor() throws Exception {
+        RecordWithAllReadOnlyCanonicalAndNoArgConstructor value = MAPPER.readValue(
+                a2q("{'id':123,'name':'Bob'}"),
+                RecordWithAllReadOnlyCanonicalAndNoArgConstructor.class);
+        assertEquals(new RecordWithAllReadOnlyCanonicalAndNoArgConstructor(0, null), value);
     }
 }

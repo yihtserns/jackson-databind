@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.deser.std.*;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.ext.OptionalHandlerFactory;
 import com.fasterxml.jackson.databind.introspect.*;
+import com.fasterxml.jackson.databind.jdk14.JDK14Util;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
@@ -486,6 +487,8 @@ index, owner, defs[index], propDef);
                 // [databind#3968]: Only Record's canonical constructor is allowed
                 //   to be considered for properties-based creator to avoid failure
                 && !beanDesc.isRecordType();
+        DefaultPropertiesCreatorConstructor defaultPropsCreatorCtor = DefaultPropertiesCreatorConstructor.find(
+                beanDesc.getClassInfo(), intr, config, ctorCandidates);
 
         for (CreatorCandidate candidate : ctorCandidates) {
             final int argCount = candidate.paramCount();
@@ -540,11 +543,16 @@ index, owner, defs[index], propDef);
                 final AnnotatedParameter param = ctor.getParameter(i);
                 BeanPropertyDefinition propDef = candidate.propertyDef(i);
                 JacksonInject.Value injectable = intr.findInjectableValue(param);
-                final PropertyName name = (propDef == null) ? null : propDef.getFullName();
+                final PropertyName name = (propDef != null)
+                        ? propDef.getFullName()
+                        : (defaultPropsCreatorCtor.is(ctor) ? defaultPropsCreatorCtor.findPropertyName(param) : null);
 
-                if ((propDef != null)
+                if ((propDef != null && propDef.isExplicitlyNamed())
                         // [databind#3724]: Record canonical constructor will have implicitly named propDef
-                        && (propDef.isExplicitlyNamed() || beanDesc.isRecordType())) {
+                        || propDef != null && !propDef.isExplicitlyNamed() && beanDesc.isRecordType()
+                        // [databind#3992,databind#4119] Record canonical constructor's propDef has been removed
+                        // by either @JsonIgnore or @JsonProperty.access=READ_ONLY
+                        || propDef == null && name != null) {
                     ++explicitNameCount;
                     properties[i] = constructCreatorProperty(ctxt, beanDesc, name, i, param, injectable);
                     continue;
@@ -2507,6 +2515,75 @@ factory.toString()));
         }
         BeanDescription beanDesc = config.introspect(enumType);
         return beanDesc.findJsonValueMethod();
+    }
+
+    /**
+     * Current main purpose if supplying property names for canonical constructor (if was pre-chosen as a
+     * properties-based creator candidate), which may have been removed when annotated with:
+     * <ul>
+     *   <li>{@code @JsonIgnore}, or</li>
+     *   <li>{@code @JsonProperty.access=READ_ONLY}</li>
+     * </ul>
+     *
+     * @see #find(AnnotatedClass, AnnotationIntrospector, DeserializationConfig, List)
+     */
+    private static class DefaultPropertiesCreatorConstructor {
+
+        static final DefaultPropertiesCreatorConstructor NONE = new DefaultPropertiesCreatorConstructor(null, Collections.emptyList());
+
+        private final AnnotatedConstructor constructor;
+        private final List<String> propertyNames;
+
+        public DefaultPropertiesCreatorConstructor(AnnotatedConstructor constructor, List<String> propertyNames) {
+            this.constructor = constructor;
+            this.propertyNames = propertyNames;
+        }
+
+        public boolean is(AnnotatedWithParams constructor) {
+            return constructor.equals(this.constructor);
+        }
+
+        public PropertyName findPropertyName(AnnotatedParameter param) {
+            return PropertyName.construct(propertyNames.get(param.getIndex()));
+        }
+
+        /**
+         * @return the default properties-based creator constructor if:
+         * <ul>
+         *   <li>The given class is a Record type, and</li>
+         *   <li>Its canonical constructor was pre-chosen as implicit properties-based creator</li>
+         * </ul>
+         * ...otherwise returns an empty instance of this class.
+         */
+        public static DefaultPropertiesCreatorConstructor find(AnnotatedClass ac,
+                                                               AnnotationIntrospector intr,
+                                                               DeserializationConfig config,
+                                                               List<CreatorCandidate> ctorCandidates) {
+
+            if (!ac.getType().isRecordType()) {
+                return NONE;
+            }
+
+            List<String> propertyNames = new ArrayList<>();
+            AnnotatedConstructor recordCanonicalConstructor = JDK14Util.findRecordConstructor(ac, intr, config, propertyNames);
+            if (recordCanonicalConstructor == null) {
+                return NONE;
+            }
+
+            for (CreatorCandidate ctorCandidate : ctorCandidates) {
+                if (ctorCandidate.creator().equals(recordCanonicalConstructor)) {
+                    continue;
+                }
+                for (int i = 0; i < ctorCandidate.paramCount(); i++) {
+                    if (ctorCandidate.propertyDef(i) != null) {
+                        // Another constructor/method has already been pre-chosen as implicit properties-based creator!
+                        return NONE;
+                    }
+                }
+            }
+
+            return new DefaultPropertiesCreatorConstructor(recordCanonicalConstructor, propertyNames);
+        }
     }
 
     /**
